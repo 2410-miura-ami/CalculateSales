@@ -46,80 +46,82 @@ public class CalculateSales {
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
 
 
-			//listFilesを使用してfilesという配列に、指定したパスに存在する
-			//全てのファイル(または、ディレクトリ)の情報を格納します。
+		//listFilesを使用してfilesという配列に、指定したパスに存在する
+		//全てのファイル(または、ディレクトリ)の情報を格納します。
 
-			File[] files = new File("C:\\Users\\trainee0919\\Desktop\\売り上げ集計課題\\").listFiles();
+		File[] files = new File(args[0]).listFiles();
 
-			//先にファイルの情報を格納する List(ArrayList) を宣言
+		//先にファイルの情報を格納する List(ArrayList) を宣言
 
-			List<File> rcdFiles = new ArrayList<>();
+		List<File> rcdFiles = new ArrayList<>();
 
-			//指定したパスに存在する全てのファイル(またはディレクトリ)の数だけ繰り返されるfor文
+		//指定したパスに存在する全てのファイル(またはディレクトリ)の数だけ繰り返されるfor文
 
-			for(int i = 0; i < files.length; i++) {
+		for(int i = 0; i < files.length; i++) {
 
-				//matches を使用してファイル名が「数字8桁.rcd」なのか判定します。
-				if(files[i].getName().matches("[0-9]{8}.rcd")){
+			//matches を使用してファイル名が「数字8桁.rcd」なのか判定します。
+			if(files[i].getName().matches("^[0-9]{8}.rcd$")){
 
-					//trueの場合(売上ファイルの条件に当てはまったものだけ、List(ArrayList) に追加します。
-					rcdFiles.add(files[i]);
+				//trueの場合(売上ファイルの条件に当てはまったものだけ、List(ArrayList) に追加します。
+				rcdFiles.add(files[i]);
+			}
+		}
+
+		//2-2
+		// 売上ファイルがrcdFilesに複数存在しているので、その分繰り返す
+		for(int i = 0; i < rcdFiles.size(); i++) {
+
+			//支店定義ファイル読み込み(readFileメソッド)を参考に売上ファイルを読み込む
+			//売上ファイルの内容は支店定義ファイルと異なるため、売上ファイルを読み込めるように処理内容変える
+
+			BufferedReader br = null;
+
+			try {
+
+				FileReader fr = new FileReader(rcdFiles.get(i));
+				br = new BufferedReader(fr);
+
+				String line;
+				List<String> contents = new ArrayList<String>();
+				//一行ずつ読み込む
+				while((line = br.readLine()) != null) {
+					//保持
+					contents.add(line);
+
+				}
+
+				//ファイルから読み込んだ情報は、内容にかかわらず一律で文字列(String) として扱われます
+				//売上ファイルの売上金額は、Longとして扱うため、Mapに追加するためには型を変換する必要があり
+				long fileSale = Long.parseLong(contents.get(1));
+
+				//売上ファイルから読み込んだ売上⾦額を加算して、
+				//Mapに追加するには既にMapにある売上⾦額を取得する必要があり
+
+				Long saleAmount = branchSales.get(contents.get(0)) + fileSale;
+
+				//加算した売上金額をMapにput
+				branchSales.put(contents.get(0), saleAmount);
+
+
+			} catch(IOException e) {
+				System.out.println(UNKNOWN_ERROR);
+				return;
+
+			} finally {
+				// ファイルを開いている場合
+				if(br != null) {
+					try {
+						// ファイルを閉じる
+						br.close();
+					} catch(IOException e) {
+						System.out.println(UNKNOWN_ERROR);
+						return;
+
+					}
 				}
 			}
 
-			//2-2
-			// 売上ファイルがrcdFilesに複数存在しているので、その分繰り返す
-			for(int i = 0; i < rcdFiles.size(); i++) {
-
-				//支店定義ファイル読み込み(readFileメソッド)を参考に売上ファイルを読み込む
-				//売上ファイルの内容は支店定義ファイルと異なるため、売上ファイルを読み込めるように処理内容変える
-
-					BufferedReader br = null;
-
-					try {
-
-						FileReader fr = new FileReader(rcdFiles.get(i));
-						br = new BufferedReader(fr);
-
-						String line;
-						List<String> list = new ArrayList<String>();
-						//一行ずつ読み込む
-						while((line = br.readLine()) != null) {
-							//保持
-							list.add(line);
-
-						}
-
-							//ファイルから読み込んだ情報は、内容にかかわらず一律で文字列(String) として扱われます
-							//売上ファイルの売上金額は、Longとして扱うため、Mapに追加するためには型を変換する必要があり
-							long fileSale = Long.parseLong(list.get(1));
-
-							//売上ファイルから読み込んだ売上⾦額を加算して、
-							//Mapに追加するには既にMapにある売上⾦額を取得する必要があり
-
-							Long saleAmount = branchSales.get(list.get(0)) + fileSale;
-
-							//加算した売上金額をMapにput
-							branchSales.put(list.get(0), saleAmount);
-
-
-					}catch(IOException e) {
-						System.out.println(UNKNOWN_ERROR);
-
-					} finally {
-						// ファイルを開いている場合
-						if(br != null) {
-							try {
-								// ファイルを閉じる
-								br.close();
-							} catch(IOException e) {
-								System.out.println(UNKNOWN_ERROR);
-
-							}
-						}
-					}
-
-			}
+		}
 
 
 
@@ -143,7 +145,7 @@ public class CalculateSales {
 		BufferedReader br = null;
 
 		try {
-			//
+
 			File file = new File(path, fileName);
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
@@ -156,10 +158,9 @@ public class CalculateSales {
 				//splitメソッドで一行ずつ読み込んだ値を区切る（今回は","で区切る）
 				String[] items = line.split(",");
 
-				branchNames.put(items[0],items[1]);
+				branchNames.put(items[0], items[1]);
 				branchSales.put(items[0], 0L);
 
-				System.out.println(line);
 			}
 
 		} catch(IOException e) {
@@ -196,7 +197,7 @@ public class CalculateSales {
 
 		try {
 			//ファイルを作成し、書き込む処理
-			File file = new File("C:\\Users\\trainee0919\\Desktop\\売り上げ集計課題\\branch.out");
+			File file = new File(path, fileName);
 
 			FileWriter fw = new FileWriter(file);
 
@@ -208,18 +209,20 @@ public class CalculateSales {
 				bw.newLine();
 			}
 
-		}catch(IOException e){
+		} catch(IOException e){
 			//エラーメッセージの表示
 			System.out.println(UNKNOWN_ERROR);
+			return false;
 
-		}finally {
+		} finally {
 			//ファイルを開いた場合は、ファイルを閉じる処理
 			if(bw != null) {
 				try {
 					//ファイルを閉じる
 					bw.close();
-				}catch(IOException e) {
+				} catch(IOException e) {
 					System.out.println(UNKNOWN_ERROR);
+					return false;
 				}
 			}
 
