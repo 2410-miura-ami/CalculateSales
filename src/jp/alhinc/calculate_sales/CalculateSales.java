@@ -103,9 +103,6 @@ public class CalculateSales {
 							branchSales.put(list.get(0), saleAmount);
 
 
-
-
-
 					}catch(IOException e) {
 						System.out.println(UNKNOWN_ERROR);
 
@@ -122,9 +119,6 @@ public class CalculateSales {
 						}
 					}
 
-
-
-
 			}
 
 
@@ -132,42 +126,6 @@ public class CalculateSales {
 		// 支店別集計ファイル書き込み処理
 		if(!writeFile(args[0], FILE_NAME_BRANCH_OUT, branchNames, branchSales)) {
 			return;
-		}
-
-		//3-1
-
-		BufferedWriter bw = null;
-
-
-		try {
-			//ファイルを作成し、書き込む処理
-			File file = new File("C:\\Users\\trainee0919\\Desktop\\売り上げ集計課題\\branch.out");
-
-			FileWriter fw = new FileWriter(file);
-
-			bw = new BufferedWriter(fw);
-
-			for(String key: branchNames.keySet()) {
-
-				bw.write(key + "," + branchNames.get(key) + "," + branchSales.get(key));
-				bw.newLine();
-			}
-
-		}catch(IOException e){
-			//エラーメッセージの表示
-			System.out.println(UNKNOWN_ERROR);
-
-		}finally {
-			//ファイルを開いた場合は、ファイルを閉じる処理
-			if(bw != null) {
-				try {
-					//ファイルを閉じる
-					bw.close();
-				}catch(IOException e) {
-					System.out.println(UNKNOWN_ERROR);
-				}
-			}
-
 		}
 
 	}
@@ -234,6 +192,38 @@ public class CalculateSales {
 	private static boolean writeFile(String path, String fileName, Map<String, String> branchNames, Map<String, Long> branchSales) {
 		// ※ここに書き込み処理を作成してください。(処理内容3-1)
 
+		BufferedWriter bw = null;
+
+		try {
+			//ファイルを作成し、書き込む処理
+			File file = new File("C:\\Users\\trainee0919\\Desktop\\売り上げ集計課題\\branch.out");
+
+			FileWriter fw = new FileWriter(file);
+
+			bw = new BufferedWriter(fw);
+
+			for(String key: branchNames.keySet()) {
+
+				bw.write(key + "," + branchNames.get(key) + "," + branchSales.get(key));
+				bw.newLine();
+			}
+
+		}catch(IOException e){
+			//エラーメッセージの表示
+			System.out.println(UNKNOWN_ERROR);
+
+		}finally {
+			//ファイルを開いた場合は、ファイルを閉じる処理
+			if(bw != null) {
+				try {
+					//ファイルを閉じる
+					bw.close();
+				}catch(IOException e) {
+					System.out.println(UNKNOWN_ERROR);
+				}
+			}
+
+		}
 		return true;
 	}
 
