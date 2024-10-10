@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 //ArrayListインポート
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ public class CalculateSales {
 	private static final String UNKNOWN_ERROR = "予期せぬエラーが発生しました";
 	private static final String FILE_NOT_EXIST = "支店定義ファイルが存在しません";
 	private static final String FILE_INVALID_FORMAT = "支店定義ファイルのフォーマットが不正です";
+	private static final String FILE_NOT_SERIAL_NUMBER = "売上ファイル名が連番になっていません";
 
 
 	/**
@@ -66,6 +68,22 @@ public class CalculateSales {
 				rcdFiles.add(files[i]);
 			}
 		}
+		//エラー処理2-1
+		//OS問わず、正常に動作させるためには連番チェックを行う前に、売上ファイルを保持しているListをソートする
+		Collections.sort(rcdFiles);
+
+		//繰り返し回数は売上ファイルのリストの数よりも1つ小さい数（比較回数はファイルの数より１つ少なくなるから）
+		for(int i = 0; i < rcdFiles.size() - 1; i++) {
+			//比較する2つのファイル名の先頭から数字の8文字を切り出し、int型に変換
+			int former = Integer.parseInt(rcdFiles.get(i).substring(0, 8));
+			int later = Integer.parseInt(rcdFiles.get(i + 1).substring(0,8));
+
+			if((later - former) != 1) {
+				System.out.println(FILE_NOT_SERIAL_NUMBER);
+			}
+
+		}
+
 
 		//2-2
 		// 売上ファイルがrcdFilesに複数存在しているので、その分繰り返す
@@ -147,6 +165,12 @@ public class CalculateSales {
 		try {
 
 			File file = new File(path, fileName);
+			//エラー処理。ファイルの存在チェック(ここに処理を入れることでファイルがない場合、読み込みをする前に終了できる。）
+			if(!file.exists()) {
+				System.out.println(FILE_NOT_EXIST);
+				return false;
+			}
+
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
 
@@ -157,6 +181,12 @@ public class CalculateSales {
 
 				//splitメソッドで一行ずつ読み込んだ値を区切る（今回は","で区切る）
 				String[] items = line.split(",");
+
+				//エラー処理。ファイルのフォーマットをチェック
+				if((items.length != 2) || (items[0].matches("^[0-9]{3}$"))) {
+					System.out.println(FILE_INVALID_FORMAT);
+					return false;
+				}
 
 				branchNames.put(items[0], items[1]);
 				branchSales.put(items[0], 0L);
