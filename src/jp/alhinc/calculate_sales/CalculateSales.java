@@ -27,6 +27,9 @@ public class CalculateSales {
 	private static final String FILE_NOT_EXIST = "支店定義ファイルが存在しません";
 	private static final String FILE_INVALID_FORMAT = "支店定義ファイルのフォーマットが不正です";
 	private static final String FILE_NOT_SERIAL_NUMBER = "売上ファイル名が連番になっていません";
+	private static final String SALE_AMOUNT_OVER = "合計金額が10桁を超えました";
+	private static final String FILE_INVALID_CODE =  "の支店コードが不正です";
+	private static final String SALE_FILE_INVALID_FORMAT = "のフォーマットが不正です";
 
 
 	/**
@@ -35,6 +38,12 @@ public class CalculateSales {
 	 * @param コマンドライン引数
 	 */
 	public static void main(String[] args) {
+		//エラー処理3-1 コマンドライン引数が渡されていないと処理が進まないので、エラーメッセージ表示する
+		if(args.length != 1) {
+			System.out.println(UNKNOWN_ERROR);
+			return;
+		}
+
 		// 支店コードと支店名を保持するMap
 		Map<String, String> branchNames = new HashMap<>();
 		// 支店コードと売上金額を保持するMap
@@ -48,7 +57,7 @@ public class CalculateSales {
 		// ※ここから集計処理を作成してください。(処理内容2-1、2-2)
 
 
-		//listFilesを使用してfilesという配列に、指定したパスに存在する
+		//listFilesメソッドを使用してfilesという配列に、指定したパスに存在する
 		//全てのファイル(または、ディレクトリ)の情報を格納します。
 
 		File[] files = new File(args[0]).listFiles();
@@ -62,7 +71,8 @@ public class CalculateSales {
 		for(int i = 0; i < files.length; i++) {
 
 			//matches を使用してファイル名が「数字8桁.rcd」なのか判定します。
-			if(files[i].getName().matches("^[0-9]{8}.rcd$")){
+			//エラー処理。getNameメソッドではファイルとディレクトリの名前が取得できるため、ファイルなのかを確認する
+			if(files[i].isFile() && files[i].getName().matches("^[0-9]{8}.rcd$")){
 
 				//trueの場合(売上ファイルの条件に当てはまったものだけ、List(ArrayList) に追加します。
 				rcdFiles.add(files[i]);
@@ -75,11 +85,12 @@ public class CalculateSales {
 		//繰り返し回数は売上ファイルのリストの数よりも1つ小さい数（比較回数はファイルの数より１つ少なくなるから）
 		for(int i = 0; i < rcdFiles.size() - 1; i++) {
 			//比較する2つのファイル名の先頭から数字の8文字を切り出し、int型に変換
-			int former = Integer.parseInt(rcdFiles.get(i).substring(0, 8));
-			int later = Integer.parseInt(rcdFiles.get(i + 1).substring(0,8));
+			int former = Integer.parseInt(rcdFiles.get(i).getName().substring(0, 8));
+			int later = Integer.parseInt(rcdFiles.get(i + 1).getName().substring(0,8));
 
 			if((later - former) != 1) {
 				System.out.println(FILE_NOT_SERIAL_NUMBER);
+				return;
 			}
 
 		}
@@ -108,14 +119,45 @@ public class CalculateSales {
 
 				}
 
+				//エラー処理2-3
+				//contents.get(0)売上ファイルの支店コードが、支店定義ファイルに存在するものかチェック
+				if (!branchNames.containsKey(contents.get(0))) {
+				    //⽀店情報を保持しているMapに売上ファイルの支店コードが存在しなかった場合は、
+				    //エラーメッセージをコンソールに表示します。
+					System.out.println(rcdFiles.get(i).getName() + FILE_INVALID_CODE);
+					return;
+				}
+
+				//エラー処理2-4
+				//売上ファイルが2行になっているか確認
+				if(contents.size() != 2) {
+					//2行になっていない時エラーメッセージ表示
+					System.out.println(rcdFiles.get(i).getName() + SALE_FILE_INVALID_FORMAT);
+					return;
+				}
+
+				//エラー処理3。売上金額が数字かどうかチェック。数字ではなかった場合はエラーメッセージ表示
+				if(!contents.get(1).matches("^[0-9]+$")) {
+				     System.out.println(UNKNOWN_ERROR);
+				     return;
+				}
+
+
 				//ファイルから読み込んだ情報は、内容にかかわらず一律で文字列(String) として扱われます
 				//売上ファイルの売上金額は、Longとして扱うため、Mapに追加するためには型を変換する必要があり
 				long fileSale = Long.parseLong(contents.get(1));
 
-				//売上ファイルから読み込んだ売上⾦額を加算して、
-				//Mapに追加するには既にMapにある売上⾦額を取得する必要があり
+
+				//売上ファイルから読み込んだ売上金額を加算して、
+				//Mapに追加するには既にMapにある売上金額を取得する必要があり
 
 				Long saleAmount = branchSales.get(contents.get(0)) + fileSale;
+
+				//エラー処理2-2
+				if(saleAmount >= 10000000000L){
+					System.out.println(SALE_AMOUNT_OVER);
+					return;
+				}
 
 				//加算した売上金額をMapにput
 				branchSales.put(contents.get(0), saleAmount);
@@ -165,7 +207,7 @@ public class CalculateSales {
 		try {
 
 			File file = new File(path, fileName);
-			//エラー処理。ファイルの存在チェック(ここに処理を入れることでファイルがない場合、読み込みをする前に終了できる。）
+			//エラー処理1-1。ファイルの存在チェック(ここに処理を入れることでファイルがない場合、読み込みをする前に終了できる。）
 			if(!file.exists()) {
 				System.out.println(FILE_NOT_EXIST);
 				return false;
@@ -182,8 +224,8 @@ public class CalculateSales {
 				//splitメソッドで一行ずつ読み込んだ値を区切る（今回は","で区切る）
 				String[] items = line.split(",");
 
-				//エラー処理。ファイルのフォーマットをチェック
-				if((items.length != 2) || (items[0].matches("^[0-9]{3}$"))) {
+				//エラー処理1-2。支店定義ファイルのフォーマットをチェック
+				if((items.length != 2) || (!items[0].matches("^[0-9]{3}$"))) {
 					System.out.println(FILE_INVALID_FORMAT);
 					return false;
 				}
