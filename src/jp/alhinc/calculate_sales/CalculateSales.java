@@ -219,8 +219,8 @@ public class CalculateSales {
 	 * @param 支店コードと売上金額を保持するMap
 	 * @return 読み込み可否
 	 */
-	private static boolean readFile(String path, String fileName, Map<String, String> Names,
-			Map<String, Long> Sales, String fileNameJapanese, String fileFormat) {
+	private static boolean readFile(String path, String fileName, Map<String, String> names,
+			Map<String, Long> sales, String fileNameJapanese, String fileFormat) {
 		BufferedReader br = null;
 
 		try {
@@ -249,8 +249,8 @@ public class CalculateSales {
 					return false;
 				}
 
-				Names.put(items[0], items[1]);
-				Sales.put(items[0], 0L);
+				names.put(items[0], items[1]);
+				sales.put(items[0], 0L);
 
 			}
 
@@ -281,8 +281,8 @@ public class CalculateSales {
 	 * @param 支店コードと売上金額を保持するMap
 	 * @return 書き込み可否
 	 */
-	private static boolean writeFile(String path, String fileName, Map<String, String> Names,
-			Map<String, Long> Sales) {
+	private static boolean writeFile(String path, String fileName, Map<String, String> names,
+			Map<String, Long> sales) {
 		// ※ここに書き込み処理を作成してください。(処理内容3-1)
 
 		BufferedWriter bw = null;
@@ -295,9 +295,9 @@ public class CalculateSales {
 
 			bw = new BufferedWriter(fw);
 
-			for (String key : Names.keySet()) {
+			for (String key : names.keySet()) {
 
-				bw.write(key + "," + Names.get(key) + "," + Sales.get(key));
+				bw.write(key + "," + names.get(key) + "," + sales.get(key));
 				bw.newLine();
 			}
 
